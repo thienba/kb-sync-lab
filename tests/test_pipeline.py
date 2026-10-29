@@ -215,7 +215,13 @@ def test_two_of_fifty_failures_exit_zero(caplog, tmp_path):
     caplog.set_level(logging.INFO, logger="kbsync")
     go(synthetic(50), store=FakeStore(fail_ids=[7, 8]))
     assert "failed=2" in last_summary(caplog)
-    warnings = [r for r in caplog.records if r.levelname == "WARNING"]
+    # Only the per-article failure warnings; the token counter may also warn when
+    # the tiktoken encoding is not cached (e.g. on CI with sockets blocked).
+    warnings = [
+        r
+        for r in caplog.records
+        if r.levelname == "WARNING" and r.getMessage().startswith("failed article")
+    ]
     assert [r.getMessage() for r in warnings] == [
         "failed article 7 (Title 7): upload failed",
         "failed article 8 (Title 8): upload failed",
