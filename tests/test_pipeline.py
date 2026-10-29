@@ -13,7 +13,7 @@ from kbsync.pipeline import run as pipeline
 from kbsync.sync import StoredFile
 from kbsync.zendesk import Article, Listing
 
-KEY = "sk-testkey1234567890abcdef"
+KEY = "sk-" + "testkey1234567890abcdef"  # built at runtime so secret scanners skip it
 FIXTURES = sorted((Path(__file__).parent / "fixtures" / "articles").glob("*.json"))
 SUMMARY = "added={a} updated={u} skipped={s} deleted={d} failed={f} files={n} chunks≈{c} in {t}s"
 

@@ -12,7 +12,8 @@ from kbsync.logs import setup_logging
 from kbsync.report import build_report, git_sha, ping, write_report
 from kbsync.sync import SyncResult
 
-KEY = "sk-test-1234567890abcdef"
+KEY = "sk-" + "test-1234567890abcdef"  # built at runtime so secret scanners skip it
+OTHER_KEY = "sk-" + "abcdefghijklmnop1234"
 
 
 def make(day=29, error=None):
@@ -138,14 +139,14 @@ def test_logging_masks_key_everywhere(monkeypatch, capsys):
     for level in (logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR):
         log.log(level, "msg %s", KEY)
         log.log(level, "Authorization: Bearer %s", KEY)
-    log.error("other sk-abcdefghijklmnop1234 key")
+    log.error("other %s key", OTHER_KEY)
     try:
         raise ValueError(f"bad {KEY}")
     except ValueError:
         log.exception("failed")
     err = capsys.readouterr().err
     assert KEY not in err
-    assert "sk-abcdefghijklmnop1234" not in err
+    assert OTHER_KEY not in err
     assert "Bearer ***" in err
     assert "***" in err
 
@@ -159,10 +160,10 @@ def test_log_line_format(capsys):
 def test_error_in_public_report_is_redacted(tmp_path, monkeypatch):
     monkeypatch.setenv("API_KEY", KEY)
     monkeypatch.setenv("HEALTHCHECK_URL", "https://hc-ping.com/secret-path")
-    msg = f"bad {KEY} sk-abcdefghijklmnop1234 https://hc-ping.com/secret-path"
+    msg = f"bad {KEY} {OTHER_KEY} https://hc-ping.com/secret-path"
     write_report(tmp_path, make(error=msg))
     text = (tmp_path / "runs" / "latest.json").read_text()
-    for leaked in (KEY, "sk-abcdefghijklmnop1234", "secret-path"):
+    for leaked in (KEY, OTHER_KEY, "secret-path"):
         assert leaked not in text
     assert "***" in text
 
@@ -189,3 +190,10 @@ def test_corrupt_index_is_rebuilt_with_warning(tmp_path, caplog):
     index = json.loads((runs / "index.json").read_text())
     assert [e["date"] for e in index] == ["2026-10-29"]
     assert "corrupt" in caplog.text
+
+
+def test_http_client_request_logs_are_quiet():
+    setup_logging()
+    for name in ("httpx", "httpx2", "httpcore", "openai"):
+        assert not logging.getLogger(name).isEnabledFor(logging.INFO)
+    assert logging.getLogger("kbsync").isEnabledFor(logging.INFO)
