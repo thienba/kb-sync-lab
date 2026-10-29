@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>kb-sync-lab status</title>
+<style>
+:root {
+  --bg: #f6f7f9; --card: #ffffff; --text: #1b1f24; --muted: #565e69; --line: #d8dce2;
+  --ok: #17692e; --ok-bg: #e3f4e8; --bad: #a12020; --bad-bg: #fbe5e5;
+  --warn: #7a4a00; --warn-bg: #fff1d6; --link: #0b5cad;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171b; --card: #1d2227; --text: #e8ebef; --muted: #a3acb8; --line: #333b44;
+    --ok: #6fd48b; --ok-bg: #173324; --bad: #ff9c9c; --bad-bg: #3a1c1c;
+    --warn: #ffcb70; --warn-bg: #3a2c10; --link: #7db8f5;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text); line-height: 1.5;
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 46rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+h1 { font-size: 1.4rem; margin: 0 0 1rem; }
+h2 { font-size: 1.05rem; margin: 0 0 .75rem; }
+a { color: var(--link); }
+section, .banner { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 1rem; margin: 0 0 1rem; }
+.banner { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); font-weight: 600; }
+.state { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; }
+.pill { display: inline-block; padding: .15rem .7rem; border-radius: 999px; font-weight: 700; letter-spacing: .03em; border: 1px solid currentColor; }
+.pill.ok { color: var(--ok); background: var(--ok-bg); }
+.pill.bad { color: var(--bad); background: var(--bad-bg); }
+.pill.warn { color: var(--warn); background: var(--warn-bg); }
+p { margin: .25rem 0; }
+.muted { color: var(--muted); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: .4rem .6rem; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+ul { margin: 0; padding-left: 1.2rem; overflow-wrap: anywhere; }
+li { margin: .25rem 0; }
+img { vertical-align: middle; max-width: 100%; }
+a:focus-visible { outline: 3px solid var(--link); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>kb-sync-lab status</h1>
+  <div id="banner" class="banner" role="alert" hidden></div>
+  <section aria-labelledby="h-last">
+    <h2 id="h-last">Last run</h2>
+    <div id="last" aria-live="polite">Loading...</div>
+  </section>
+  <section aria-labelledby="h-days">
+    <h2 id="h-days">Counts per day</h2>
+    <div id="days" class="scroll">Loading...</div>
+  </section>
+  <section aria-labelledby="h-changed">
+    <h2 id="h-changed">Recently changed</h2>
+    <div id="changed">Loading...</div>
+  </section>
+  <section id="hc" aria-labelledby="h-hc" hidden>
+    <h2 id="h-hc">Independent check</h2>
+  </section>
+</main>
+<script>
+"use strict";
+// Daily schedule from the deploy ticket (cron 02:17 UTC).
+const RUN_HOUR_UTC = 2, RUN_MINUTE_UTC = 17;
+// Banner when the last run is older than a daily job plus 2 hours of grace.
+const STALE_HOURS = 26;
+// healthchecks.io status badge URL (https://healthchecks.io/badge/...); empty hides it.
+const HC_BADGE_URL = "";
+const MAX_CHANGES = 10, MAX_DAY_FILES = 7;
+const HOUR = 3600000, MINUTE = 60000;
+
+const q = new URLSearchParams(location.search).get("now");
+const parsedNow = q ? Date.parse(q) : NaN;
+const NOW = Number.isNaN(parsedNow) ? Date.now() : parsedNow;
+
+const $ = (id) => document.getElementById(id);
+function el(tag, text, cls) {
+  const e = document.createElement(tag);
+  if (text !== undefined) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+}
+function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
+function show(node, ...children) { node.replaceChildren(...children); }
+
+async function getJson(path) {
+  const res = await fetch(path, { cache: "no-store" });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
+
+function ago(ms) {
+  const h = Math.floor(ms / HOUR);
+  return h >= 1 ? plural(h, "hour") : plural(Math.max(0, Math.floor(ms / MINUTE)), "minute");
+}
+
+function nextRunMs(now) {
+  const d = new Date(now);
+  let t = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), RUN_HOUR_UTC, RUN_MINUTE_UTC);
+  if (t <= now) t += 24 * HOUR;
+  return t - now;
+}
+
+function safeLink(title, url) {
+  if (typeof url === "string" && url.startsWith("https://")) {
+    const a = el("a", title);
+    a.href = url;
+    a.rel = "noopener noreferrer";
+    return a;
+  }
+  return el("span", title);
+}
+
+function num(v) {
+  return Number.isFinite(v) ? v : 0;
+}
+
+function renderLast(r) {
+  const started = Date.parse(r.started_at);
+  if (Number.isNaN(started)) throw new Error("bad started_at");
+  const age = NOW - started;
+  const stale = age > STALE_HOURS * HOUR;
+  const failed = r.status !== "ok";
+  let label = "OK", cls = "ok";
+  if (failed) { label = "FAILED"; cls = "bad"; } else if (stale) { label = "STALE"; cls = "warn"; }
+  const state = el("div", undefined, "state");
+  state.append(el("span", label, "pill " + cls), el("strong", "Last run: " + ago(age) + " ago"));
+  const next = nextRunMs(NOW);
+  const nextText = "Next run in " + plural(Math.floor(next / HOUR), "hour") + " " +
+    plural(Math.floor((next % HOUR) / MINUTE), "minute") + " (02:17 UTC daily)";
+  const parts = [state, el("p", nextText)];
+  parts.push(el("p", "Started " + r.started_at + ", took " + num(r.duration_s) + " s. Added " + num(r.added) +
+    ", updated " + num(r.updated) + ", failed " + num(r.failed) + ".", "muted"));
+  if (failed && r.error) parts.push(el("p", "Error: " + r.error));
+  show($("last"), ...parts);
+  if (stale) {
+    $("banner").textContent = "Last run was " + plural(Math.floor(age / HOUR), "hour") +
+      " ago. The daily job may have stopped.";
+    $("banner").hidden = false;
+  }
+}
+
+function renderDays(index) {
+  const cols = ["added", "updated", "skipped", "deleted", "failed"];
+  const table = el("table");
+  const head = el("tr");
+  head.append(el("th", "Date"), ...cols.map((c) => el("th", c[0].toUpperCase() + c.slice(1))));
+  const thead = el("thead");
+  thead.append(head);
+  table.append(thead);
+  const body = el("tbody");
+  for (const e of index) {
+    const tr = el("tr");
+    tr.append(el("td", String(e.date)), ...cols.map((c) => el("td", String(e[c]))));
+    body.append(tr);
+  }
+  table.append(body);
+  show($("days"), table);
+}
+
+function renderChanges(list) {
+  if (!list.length) { show($("changed"), el("p", "No changes in recent runs.", "muted")); return; }
+  const ul = el("ul");
+  for (const c of list.slice(0, MAX_CHANGES)) {
+    const li = el("li");
+    li.append(safeLink(String(c.title), c.url), el("span", " (" + c.change + ")", "muted"));
+    ul.append(li);
+  }
+  show($("changed"), ul);
+}
+
+async function recentChanges(latest, index) {
+  const out = (latest.changes || []).slice();
+  const latestDate = String(latest.started_at).slice(0, 10);
+  const dates = index.map((e) => e.date).filter((d) => d !== latestDate).slice(0, MAX_DAY_FILES);
+  for (const d of dates) {
+    if (out.length >= MAX_CHANGES) break;
+    try {
+      const day = await getJson("../runs/" + encodeURIComponent(d) + ".json");
+      if (day && Array.isArray(day.changes)) out.push(...day.changes);
+    } catch (_) { /* a missing day only shortens the list */ }
+  }
+  return out;
+}
+
+function renderHc() {
+  if (!HC_BADGE_URL.startsWith("https://healthchecks.io/")) return;
+  const img = el("img");
+  img.src = HC_BADGE_URL;
+  img.alt = "healthchecks.io status";
+  img.width = 120; img.height = 20;
+  const a = el("a", "Independent check");
+  a.href = HC_BADGE_URL;
+  a.rel = "noopener noreferrer";
+  const p = el("p");
+  p.append(a);
+  $("hc").append(img, p);
+  $("hc").hidden = false;
+}
+
+async function main() {
+  renderHc();
+  let latest;
+  try {
+    latest = await getJson("../runs/latest.json");
+  } catch (_) {
+    for (const id of ["last", "days", "changed"]) show($(id), el("p", "Cannot load run data."));
+    return;
+  }
+  if (!latest) {
+    for (const id of ["last", "days", "changed"]) show($(id), el("p", "No run data yet."));
+    return;
+  }
+  renderLast(latest);
+  let index = [];
+  try {
+    index = (await getJson("../runs/index.json")) || [];
+    renderDays(index);
+  } catch (_) {
+    show($("days"), el("p", "Cannot load run data."));
+  }
+  renderChanges(await recentChanges(latest, index));
+}
+main().catch(() => {
+  for (const id of ["last", "days", "changed"]) show($(id), el("p", "Cannot load run data."));
+});
+</script>
+</body>
+</html>
