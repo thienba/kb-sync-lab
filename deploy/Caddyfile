@@ -1,0 +1,26 @@
+# Static server for the status page and run history. Listens on 8080 inside the
+# compose network only; cloudflared reaches it as http://web:8080.
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	root * /srv
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://img.shields.io https://healthchecks.io data:; frame-ancestors 'none'"
+	}
+
+	respond /healthz 200
+
+	redir / /status/ 302
+	redir /status /status/ 302
+
+	header /runs/* Cache-Control no-store
+
+	# No `browse`: a directory without an index file is a 404, never a listing.
+	file_server
+}

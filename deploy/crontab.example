@@ -1,0 +1,2 @@
+CRON_TZ=UTC
+17 2 * * * /opt/kbsync/run-job.sh
