@@ -28,7 +28,7 @@ Expected article in top 1 / top 3 (questions and expected ids: `tests/retrieval/
 ## Choice
 
 `max_chunk_size_tokens=600`, `chunk_overlap_tokens=150` (defaults in `config.py` and `.env.sample`).
-Both settings score the same (9/10 top 1 and top 3), so there is no evidence to leave the starting candidate.
+Both settings score the same (9/10 top 1 and top 3), so there is no evidence to move away from the starting choice.
 600/150 gives smaller, more focused chunks and an overlap of one quarter, at a modest storage cost
 (about 1,323 chunks estimated against fewer with 800/400).
 The one miss is the same under both settings, so it is a question/article match issue, not a chunking one.
