@@ -34,3 +34,6 @@ def setup_logging(level: int = logging.INFO) -> None:
     root = logging.getLogger()
     root.handlers[:] = [handler]
     root.setLevel(level)
+    # The HTTP clients log every request at INFO, which buries the run's own lines.
+    for noisy in ("httpx", "httpx2", "httpcore", "httpcore2", "openai"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)

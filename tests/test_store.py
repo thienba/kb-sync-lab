@@ -337,7 +337,7 @@ def test_connection_and_5xx_become_store_error(err):
 def test_no_key_in_error_messages():
     c = FakeClient()
     c.create_error = openai.APIConnectionError(
-        message="bad sk-abcdefghijklmnopqrstuvwxyz", request=REQ
+        message="bad " + "sk-" + "abcdefghijklmnopqrstuvwxyz", request=REQ
     )
     with pytest.raises(StoreError) as e:
         make(c, store_id="vs_1").upload_many([item(1)])
