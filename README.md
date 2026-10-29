@@ -17,3 +17,8 @@ _To be written: how the work was planned and split._
 
 ## AI Collaboration Narrative
 _To be written as the work progresses._
+
+## Chunking
+
+Files are chunked statically at 600 tokens with 150 overlap (`CHUNK_MAX_TOKENS`, `CHUNK_OVERLAP_TOKENS`).
+Measured against 800/400 on 10 questions, both found the expected article 9/10 times; see `docs/chunking.md`.
