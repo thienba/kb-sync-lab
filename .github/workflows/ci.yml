@@ -20,7 +20,7 @@ jobs:
       - name: Audit locked dependencies
         run: |
           uv export --locked --no-dev --no-emit-project -o requirements.txt
-          uvx pip-audit --strict --disable-pip -r requirements.txt
+          uvx pip-audit==2.10.1 --strict --disable-pip -r requirements.txt
 
   docker:
     runs-on: ubuntu-24.04
