@@ -59,6 +59,7 @@ class OpenAIStore:
         client: openai.OpenAI,
         name: str = "optibot-kb",
         store_id: str | None = None,
+        create: bool = True,
         chunk_max_tokens: int = 600,
         chunk_overlap_tokens: int = 150,
         converter_version: str = CONVERTER_VERSION,
@@ -70,6 +71,7 @@ class OpenAIStore:
         self.client = client
         self.name = name
         self._store_id = store_id
+        self.create = create
         self._resolved = False
         self.chunking_strategy = {
             "type": "static",
@@ -111,6 +113,8 @@ class OpenAIStore:
                 if not page.has_more:
                     break
                 after = page.data[-1].id
+            if not self.create:
+                raise StoreError(f"Vector store '{self.name}' not found. Run main.py first.")
             log.info("Creating vector store %s", self.name)
             return stores.create(name=self.name).id
 
