@@ -258,6 +258,18 @@ def test_missing_key_still_writes_failed_report(capsys, tmp_path, monkeypatch):
     assert report["status"] == "failed" and report["error"].startswith("API_KEY is not set")
 
 
+def test_unwritable_public_dir_keeps_exit_code(capsys, caplog, tmp_path, monkeypatch):
+    monkeypatch.delenv("API_KEY")
+    blocker = tmp_path / "ro"
+    blocker.write_text("not a directory")
+    monkeypatch.setenv("PUBLIC_DIR", str(blocker))
+    code, err = exit_of(capsys)
+    assert code == 2
+    assert err == "API_KEY is not set. Copy .env.sample to .env or pass -e API_KEY=...\n"
+    assert "Traceback" not in err
+    assert "Could not write the run report to" in caplog.text
+
+
 def test_limit_deletes_nothing(caplog):
     caplog.set_level(logging.INFO, logger="kbsync")
     others = [StoredFile(f"v{i}", f"f{i}", {"article_id": str(1000 + i)}) for i in range(50)]
