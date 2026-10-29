@@ -1,0 +1,8 @@
+{
+  "id": 1,
+  "title": "Synthetic: relative link",
+  "draft": false,
+  "html_url": "https://support.optisigns.com/hc/en-us/articles/1",
+  "updated_at": "2026-01-01T00:00:00Z",
+  "body": "<p>See <a href=\"/hc/en-us/articles/2-other-article\">the other article</a>.</p>"
+}
