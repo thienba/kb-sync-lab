@@ -2,10 +2,15 @@
 
 My submission for the OptiSigns / AlphaSphere technical test (Coding + Planning), Mid/Senior Full Stack Developer.
 
-> Status: waiting for the test. The task has not been received yet.
 
 ## Build, run and test
-_To be written once the task arrives and the app is scaffolded._
+```
+uv sync --locked
+uv run pytest -q
+cp .env.sample .env   # then set API_KEY
+uv run main.py
+docker build -t kbsync . && docker run --rm -e API_KEY=... kbsync
+```
 
 ## Plan
 _To be written: how the work was planned and split._
