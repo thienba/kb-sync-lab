@@ -215,7 +215,13 @@ def test_two_of_fifty_failures_exit_zero(caplog, tmp_path):
     caplog.set_level(logging.INFO, logger="kbsync")
     go(synthetic(50), store=FakeStore(fail_ids=[7, 8]))
     assert "failed=2" in last_summary(caplog)
-    warnings = [r for r in caplog.records if r.levelname == "WARNING"]
+    # Only the per-article failure warnings; the token counter may also warn when
+    # the tiktoken encoding is not cached (e.g. on CI with sockets blocked).
+    warnings = [
+        r
+        for r in caplog.records
+        if r.levelname == "WARNING" and r.getMessage().startswith("failed article")
+    ]
     assert [r.getMessage() for r in warnings] == [
         "failed article 7 (Title 7): upload failed",
         "failed article 8 (Title 8): upload failed",
@@ -256,6 +262,18 @@ def test_missing_key_still_writes_failed_report(capsys, tmp_path, monkeypatch):
     exit_of(capsys)
     report = json.loads((tmp_path / "public/runs/latest.json").read_text())
     assert report["status"] == "failed" and report["error"].startswith("API_KEY is not set")
+
+
+def test_unwritable_public_dir_keeps_exit_code(capsys, caplog, tmp_path, monkeypatch):
+    monkeypatch.delenv("API_KEY")
+    blocker = tmp_path / "ro"
+    blocker.write_text("not a directory")
+    monkeypatch.setenv("PUBLIC_DIR", str(blocker))
+    code, err = exit_of(capsys)
+    assert code == 2
+    assert err == "API_KEY is not set. Copy .env.sample to .env or pass -e API_KEY=...\n"
+    assert "Traceback" not in err
+    assert "Could not write the run report to" in caplog.text
 
 
 def test_limit_deletes_nothing(caplog):

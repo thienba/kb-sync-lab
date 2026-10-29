@@ -12,6 +12,7 @@ import openai
 from kbsync.config import Config, load_config
 from kbsync.convert import CONVERTER_VERSION, ConvertedArticle, convert, write_all
 from kbsync.errors import KbSyncError, ListingError, TooManyFailures
+from kbsync.logs import redact
 from kbsync.report import PingGet, build_report, ping, write_report
 from kbsync.report import _ping_get as default_ping_get
 from kbsync.store import OpenAIStore, estimate_chunks, smoke_search
@@ -25,6 +26,14 @@ NEXT_HINT = (
     'Next: uv run ask.py "How do I add a YouTube video?" (or use the Playground, see README)'
 )
 TRUE_VALUES = {"1", "true", "yes"}
+
+
+def _write_report(public_dir: Path, report: dict[str, Any]) -> None:
+    """Write the run report; a failure to write it must not change the exit code."""
+    try:
+        write_report(public_dir, report)
+    except OSError as exc:
+        log.warning("Could not write the run report to %s: %s", public_dir, redact(str(exc)))
 
 
 def _make_store(cfg: Config) -> Store:
@@ -150,11 +159,11 @@ def run(
             error=str(exc),
             titles=state.get("titles", {}),
         )
-        write_report(public_dir, failed)
+        _write_report(public_dir, failed)
         ping(heartbeat, ok=False, get=ping_get)
         raise
     duration = clock() - started
-    write_report(
+    _write_report(
         public_dir,
         build_report(
             result, started_at, duration, files, chunks, CONVERTER_VERSION, titles=state["titles"]
