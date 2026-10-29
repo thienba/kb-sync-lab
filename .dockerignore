@@ -2,9 +2,9 @@
 .git
 .venv
 .github
-tests
 out
 public
+tests
 __pycache__
 .pytest_cache
 .ruff_cache
