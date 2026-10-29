@@ -14,11 +14,12 @@ Each run writes under `public/runs/` (served at `/runs/...`), atomically:
 | `started_at` | string | ISO 8601 UTC, ends in `Z` |
 | `duration_s` | integer | seconds |
 | `added`, `updated`, `skipped`, `deleted`, `failed` | integer | article counts |
-| `files` | integer | files in the vector store |
-| `chunks_estimate` | integer | estimated chunks |
+| `files` | integer | files in the vector store; omitted when `status` is `failed` and it is unknown |
+| `chunks_estimate` | integer | estimated chunks; omitted when unknown, as `files` |
 | `converter_version` | string | converter version used |
 | `git_sha` | string | `GIT_SHA`, else `git rev-parse --short HEAD`, else `unknown` |
 | `changes` | list | `{article_id: int, title: str, url: str, change: str}` |
+| `failures` | list | `{article_id: int, title: str, reason: str}`, one per failed article |
 | `error` | string | one line; only when `status` is `failed` |
 
 `change` is `added`, `updated` or `deleted`.
@@ -31,7 +32,8 @@ Each run writes under `public/runs/` (served at `/runs/...`), atomically:
   "added": 1, "updated": 0, "skipped": 30, "deleted": 0, "failed": 0,
   "files": 31, "chunks_estimate": 120,
   "converter_version": "2", "git_sha": "7f5e304",
-  "changes": [{"article_id": 1, "title": "Setup", "url": "https://x/1", "change": "added"}]
+  "changes": [{"article_id": 1, "title": "Setup", "url": "https://x/1", "change": "added"}],
+  "failures": []
 }
 ```
 
@@ -39,4 +41,4 @@ Each run writes under `public/runs/` (served at `/runs/...`), atomically:
 
 `{date, status, started_at, added, updated, skipped, deleted, failed, files}`, for example
 `{"date": "2026-10-29", "status": "ok", "started_at": "2026-10-29T03:00:01Z", "added": 1,
-"updated": 0, "skipped": 30, "deleted": 0, "failed": 0, "files": 31}`.
+"updated": 0, "skipped": 30, "deleted": 0, "failed": 0, "files": 31}`. `files` is `null` for a failed run that did not get that far.

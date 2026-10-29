@@ -44,10 +44,11 @@ def build_report(
     result: SyncResult,
     started_at: datetime,
     duration_s: float,
-    files: int,
-    chunks_estimate: int,
+    files: int | None,
+    chunks_estimate: int | None,
     converter_version: str,
     error: str | None = None,
+    titles: dict[int, str] | None = None,
 ) -> dict[str, object]:
     report: dict[str, object] = {
         "status": "failed" if error else "ok",
@@ -58,12 +59,18 @@ def build_report(
         "skipped": result.skipped,
         "deleted": result.deleted,
         "failed": result.failed,
-        "files": files,
-        "chunks_estimate": chunks_estimate,
         "converter_version": converter_version,
         "git_sha": git_sha(),
         "changes": result.changes,
+        "failures": [
+            {"article_id": i, "title": (titles or {}).get(i, ""), "reason": redact(reason)}
+            for i, reason in result.failures
+        ],
     }
+    if files is not None:
+        report["files"] = files
+    if chunks_estimate is not None:
+        report["chunks_estimate"] = chunks_estimate
     if error:
         report["error"] = redact(error.splitlines()[0] if error.strip() else error)
     return report
@@ -82,7 +89,7 @@ def write_report(public_dir: Path, report: dict[str, object]) -> None:
     _atomic_write(runs / f"{date}.json", report)
     _atomic_write(runs / "latest.json", report)
     index_path = runs / "index.json"
-    entry = {"date": date, **{key: report[key] for key in INDEX_KEYS}}
+    entry = {"date": date, **{key: report.get(key) for key in INDEX_KEYS}}
     index: list[dict[str, object]] = []
     if index_path.exists():
         try:
