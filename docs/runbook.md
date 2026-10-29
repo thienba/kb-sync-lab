@@ -1,7 +1,7 @@
 # Runbook: kbsync on the server
 
 The sync job, the status web server and the Cloudflare Tunnel run as one compose stack in
-`/opt/kbsync` on the human's AWS server (arm64 Ubuntu 24.04, Docker, Compose). Public URL:
+`/opt/kbsync` on the owner's AWS server (arm64 Ubuntu 24.04, Docker, Compose). Public URL:
 `https://kbsync.bahuynh.com/status/`. Design: `context/part1-design.md` §5.6, §5.8, §8.
 
 **Never touch bs-kara (the other project on this server): not its repo, compose stack, Caddyfile, deploy or security group (D-0000-12).**
@@ -9,7 +9,7 @@ This stack publishes no host port; the only way in is the Cloudflare Tunnel.
 
 How to read the steps: **[human]** is done by the human alone (dashboard, secrets).
 **[agent, ask first]** is run by the agent only after the human says go for that exact step.
-The agent never runs a server command without the human's go-ahead for that step.
+The agent never runs a server command without the owner's go-ahead for that step.
 Run server commands as user `ubuntu` over SSH (`ssh -i <your server key> ubuntu@54.251.27.240`).
 
 ## Layout
