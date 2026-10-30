@@ -12,6 +12,8 @@ main() {
 	docker build -t kbsync:local --build-arg GIT_SHA="$(git rev-parse --short HEAD)" .
 	sudo install -m 644 deploy/compose.yaml deploy/Caddyfile "$dir/"
 	sudo install -m 755 deploy/run-job.sh "$dir/"
+	sudo install -d -o 10001 -g 10001 "$dir/public/status"
+	sudo install -m 644 -o 10001 -g 10001 status/index.html "$dir/public/status/"
 }
 
 main "$@"

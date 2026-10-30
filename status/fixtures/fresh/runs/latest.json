@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "started_at": "2026-10-29T02:17:04Z",
+  "duration_s": 42,
+  "added": 1,
+  "updated": 2,
+  "skipped": 30,
+  "deleted": 0,
+  "failed": 0,
+  "files": 31,
+  "chunks_estimate": 120,
+  "converter_version": "2",
+  "git_sha": "7f5e304",
+  "changes": [
+    {
+      "article_id": 1,
+      "title": "How to add a YouTube video",
+      "url": "https://support.optisigns.com/hc/en-us/articles/1",
+      "change": "added"
+    },
+    {
+      "article_id": 2,
+      "title": "Screen rotation settings",
+      "url": "https://support.optisigns.com/hc/en-us/articles/2",
+      "change": "updated"
+    },
+    {
+      "article_id": 3,
+      "title": "Wi-Fi troubleshooting",
+      "url": "https://support.optisigns.com/hc/en-us/articles/3",
+      "change": "updated"
+    }
+  ],
+  "failures": []
+}

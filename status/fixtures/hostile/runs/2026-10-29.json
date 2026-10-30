@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "started_at": "2026-10-29T02:17:04Z",
+  "duration_s": 42,
+  "added": 2,
+  "updated": 0,
+  "skipped": 30,
+  "deleted": 0,
+  "failed": 0,
+  "files": 31,
+  "chunks_estimate": 120,
+  "converter_version": "2",
+  "git_sha": "7f5e304",
+  "changes": [
+    {
+      "article_id": 666,
+      "title": "<img src=x onerror=alert(1)>",
+      "url": "javascript:alert(1)",
+      "change": "added"
+    },
+    {
+      "article_id": 667,
+      "title": "<script>alert(2)</script> plain https",
+      "url": "https://support.optisigns.com/hc/en-us/articles/667?a=1&b=<2>",
+      "change": "added"
+    }
+  ],
+  "failures": []
+}
