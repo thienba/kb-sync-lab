@@ -153,14 +153,14 @@ function renderDays(index) {
   const cols = ["added", "updated", "skipped", "deleted", "failed"];
   const table = el("table");
   const head = el("tr");
-  head.append(el("th", "Date"), ...cols.map((c) => el("th", c[0].toUpperCase() + c.slice(1))));
+  head.append(el("th", "Date"), el("th", "Runs"), ...cols.map((c) => el("th", c[0].toUpperCase() + c.slice(1))));
   const thead = el("thead");
   thead.append(head);
   table.append(thead);
   const body = el("tbody");
   for (const e of index) {
     const tr = el("tr");
-    tr.append(el("td", String(e.date)), ...cols.map((c) => el("td", String(e[c]))));
+    tr.append(el("td", String(e.date)), el("td", String(e.runs || 1)), ...cols.map((c) => el("td", String(e[c]))));
     body.append(tr);
   }
   table.append(body);
@@ -179,17 +179,17 @@ function renderChanges(list) {
 }
 
 async function recentChanges(latest, index) {
-  const out = (latest.changes || []).slice();
-  const latestDate = String(latest.started_at).slice(0, 10);
-  const dates = index.map((e) => e.date).filter((d) => d !== latestDate).slice(0, MAX_DAY_FILES);
-  for (const d of dates) {
+  const out = [];
+  for (const e of index.slice(0, MAX_DAY_FILES)) {
     if (out.length >= MAX_CHANGES) break;
     try {
-      const day = await getJson("../runs/" + encodeURIComponent(d) + ".json");
-      if (day && Array.isArray(day.changes)) out.push(...day.changes);
+      const day = await getJson("../runs/" + encodeURIComponent(e.date) + ".json");
+      // New day files hold every run, oldest first; an old one is a single report.
+      const runs = day && Array.isArray(day.runs) ? day.runs.slice().reverse() : [day];
+      for (const r of runs) if (r && Array.isArray(r.changes)) out.push(...r.changes);
     } catch (_) { /* a missing day only shortens the list */ }
   }
-  return out;
+  return out.length ? out : (latest.changes || []);
 }
 
 function renderHc() {

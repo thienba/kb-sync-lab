@@ -19,6 +19,9 @@ PING_TIMEOUT = 10
 PING_RETRIES = 2
 INDEX_KEYS = ("status", "started_at", "added", "updated", "skipped", "deleted", "failed", "files")
 
+SUMMED_KEYS = ("added", "updated", "deleted", "failed")
+MAX_DAY_RUNS = 48
+
 # Status code of one GET; a network failure or timeout raises OSError.
 PingGet = Callable[[str, float], int]
 
@@ -82,20 +85,46 @@ def _atomic_write(path: Path, data: object) -> None:
     os.replace(tmp, path)
 
 
+def _read_json(path: Path, what: str) -> object | None:
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        log.warning("%s is corrupt, rebuilding it: %s", what, type(exc).__name__)
+        return None
+
+
+def _day_runs(path: Path) -> list[dict[str, object]]:
+    existing = _read_json(path, path.name)
+    if isinstance(existing, dict) and isinstance(existing.get("runs"), list):
+        return existing["runs"]
+    if isinstance(existing, dict) and "started_at" in existing:
+        return [existing]  # an old single-report day file is the first run
+    if existing is not None:
+        log.warning("%s has an unknown shape, rebuilding it", path.name)
+    return []
+
+
+def _index_entry(date: str, day_runs: list[dict[str, object]]) -> dict[str, object]:
+    newest = day_runs[-1]
+    entry: dict[str, object] = {"date": date, "runs": len(day_runs)}
+    entry.update({key: newest.get(key) for key in INDEX_KEYS})
+    for key in SUMMED_KEYS:
+        entry[key] = sum(int(str(r.get(key) or 0)) for r in day_runs)
+    return entry
+
+
 def write_report(public_dir: Path, report: dict[str, object]) -> None:
     runs = Path(public_dir) / "runs"
     runs.mkdir(parents=True, exist_ok=True)
     date = str(report["started_at"])[:10]
-    _atomic_write(runs / f"{date}.json", report)
+    day_runs = (_day_runs(runs / f"{date}.json") + [report])[-MAX_DAY_RUNS:]
+    _atomic_write(runs / f"{date}.json", {"date": date, "runs": day_runs})
     _atomic_write(runs / "latest.json", report)
     index_path = runs / "index.json"
-    entry = {"date": date, **{key: report.get(key) for key in INDEX_KEYS}}
-    index: list[dict[str, object]] = []
-    if index_path.exists():
-        try:
-            index = json.loads(index_path.read_text(encoding="utf-8"))
-        except ValueError as exc:
-            log.warning("index.json is corrupt, rebuilding it: %s", type(exc).__name__)
+    entry = _index_entry(date, day_runs)
+    index = _read_json(index_path, "index.json") or []
     index = [e for e in index if e["date"] != date] + [entry]
     index.sort(key=lambda e: e["date"], reverse=True)
     _atomic_write(index_path, index)

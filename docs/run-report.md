@@ -2,7 +2,9 @@
 
 Each run writes under `public/runs/` (served at `/runs/...`), atomically:
 
-- `<UTC date>.json`: the report of the last run that day.
+- `<UTC date>.json`: `{"date": "<YYYY-MM-DD>", "runs": [<report>, ...]}`, every run of that UTC day,
+  oldest first, capped at the newest 48. An old file holding one bare report (no `runs`) becomes the
+  first run; a corrupt file is rebuilt with a warning.
 - `latest.json`: identical to the newest report.
 - `index.json`: list, newest first, one entry per date.
 
@@ -39,6 +41,8 @@ Each run writes under `public/runs/` (served at `/runs/...`), atomically:
 
 ## index.json entry
 
-`{date, status, started_at, added, updated, skipped, deleted, failed, files}`, for example
-`{"date": "2026-10-29", "status": "ok", "started_at": "2026-10-29T03:00:01Z", "added": 1,
+`{date, runs, status, started_at, added, updated, skipped, deleted, failed, files}`. `runs` is the
+number of runs kept for that date; `added`, `updated`, `deleted` and `failed` are summed over them;
+`status`, `started_at`, `skipped` and `files` come from the newest run. For example
+`{"date": "2026-10-29", "runs": 1, "status": "ok", "started_at": "2026-10-29T03:00:01Z", "added": 1,
 "updated": 0, "skipped": 30, "deleted": 0, "failed": 0, "files": 31}`. `files` is `null` for a failed run that did not get that far.

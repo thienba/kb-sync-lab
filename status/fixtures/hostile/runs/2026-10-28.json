@@ -1,29 +1,34 @@
 {
-  "status": "ok",
-  "started_at": "2026-10-28T02:17:03Z",
-  "duration_s": 42,
-  "added": 0,
-  "updated": 1,
-  "skipped": 30,
-  "deleted": 0,
-  "failed": 0,
-  "files": 31,
-  "chunks_estimate": 120,
-  "converter_version": "2",
-  "git_sha": "7f5e304",
-  "changes": [
+  "date": "2026-10-28",
+  "runs": [
     {
-      "article_id": 668,
-      "title": "HTTP only link",
-      "url": "http://example.com/x",
-      "change": "updated"
-    },
-    {
-      "article_id": 669,
-      "title": "Data URL",
-      "url": "data:text/html,<script>alert(3)</script>",
-      "change": "updated"
+      "status": "ok",
+      "started_at": "2026-10-28T02:17:03Z",
+      "duration_s": 42,
+      "added": 0,
+      "updated": 1,
+      "skipped": 30,
+      "deleted": 0,
+      "failed": 0,
+      "files": 31,
+      "chunks_estimate": 120,
+      "converter_version": "2",
+      "git_sha": "7f5e304",
+      "changes": [
+        {
+          "article_id": 668,
+          "title": "HTTP only link",
+          "url": "http://example.com/x",
+          "change": "updated"
+        },
+        {
+          "article_id": 669,
+          "title": "Data URL",
+          "url": "data:text/html,<script>alert(3)</script>",
+          "change": "updated"
+        }
+      ],
+      "failures": []
     }
-  ],
-  "failures": []
+  ]
 }

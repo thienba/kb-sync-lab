@@ -1,17 +1,19 @@
 [
   {
     "date": "2026-10-29",
+    "runs": 2,
     "status": "ok",
-    "started_at": "2026-10-29T02:17:04Z",
+    "started_at": "2026-10-29T04:45:00Z",
     "added": 1,
     "updated": 2,
-    "skipped": 30,
+    "skipped": 31,
     "deleted": 0,
     "failed": 0,
     "files": 31
   },
   {
     "date": "2026-10-28",
+    "runs": 1,
     "status": "ok",
     "started_at": "2026-10-28T02:17:03Z",
     "added": 0,
@@ -23,6 +25,7 @@
   },
   {
     "date": "2026-10-27",
+    "runs": 1,
     "status": "ok",
     "started_at": "2026-10-27T02:17:05Z",
     "added": 0,
