@@ -1,0 +1,41 @@
+{
+  "status": "ok",
+  "started_at": "2026-10-28T02:17:03Z",
+  "duration_s": 42,
+  "added": 0,
+  "updated": 4,
+  "skipped": 27,
+  "deleted": 0,
+  "failed": 0,
+  "files": 31,
+  "chunks_estimate": 120,
+  "converter_version": "2",
+  "git_sha": "7f5e304",
+  "changes": [
+    {
+      "article_id": 10,
+      "title": "Article number 10",
+      "url": "https://support.optisigns.com/hc/en-us/articles/10",
+      "change": "updated"
+    },
+    {
+      "article_id": 11,
+      "title": "Article number 11",
+      "url": "https://support.optisigns.com/hc/en-us/articles/11",
+      "change": "updated"
+    },
+    {
+      "article_id": 12,
+      "title": "Article number 12",
+      "url": "https://support.optisigns.com/hc/en-us/articles/12",
+      "change": "updated"
+    },
+    {
+      "article_id": 13,
+      "title": "Article number 13",
+      "url": "https://support.optisigns.com/hc/en-us/articles/13",
+      "change": "updated"
+    }
+  ],
+  "failures": []
+}
