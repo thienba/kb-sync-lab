@@ -27,8 +27,12 @@ def test_write_report_creates_files_with_all_keys(tmp_path):
     rep = make()
     write_report(tmp_path / "public", rep)
     runs = tmp_path / "public" / "runs"
-    day = json.loads((runs / "2026-10-29.json").read_text())
-    assert day == json.loads((runs / "latest.json").read_text()) == rep
+    assert json.loads((runs / "2026-10-29.json").read_text()) == {
+        "date": "2026-10-29",
+        "runs": [rep],
+    }
+    day = json.loads((runs / "latest.json").read_text())
+    assert day == rep
     types = {
         "status": str, "started_at": str, "duration_s": int, "added": int, "updated": int,
         "skipped": int, "deleted": int, "failed": int, "files": int, "chunks_estimate": int,
@@ -41,7 +45,7 @@ def test_write_report_creates_files_with_all_keys(tmp_path):
     assert "error" not in day
     index = json.loads((runs / "index.json").read_text())
     assert index == [
-        {"date": "2026-10-29", **{k: day[k] for k in report_mod.INDEX_KEYS}},
+        {"date": "2026-10-29", "runs": 1, **{k: day[k] for k in report_mod.INDEX_KEYS}},
     ]
 
 
@@ -58,17 +62,76 @@ def test_crash_before_replace_keeps_previous_latest(tmp_path, monkeypatch):
     assert latest["started_at"].startswith("2026-10-28")
 
 
-def test_same_date_replaces_and_next_date_adds_entry(tmp_path):
+def test_same_date_keeps_both_runs_and_sums_the_index_row(tmp_path):
     write_report(tmp_path, make(29))
     second = make(29)
-    second["added"] = 7
+    second.update(status="failed", started_at="2026-10-29T04:00:00Z", skipped=9, files=11)
     write_report(tmp_path, second)
     write_report(tmp_path, make(30))
     runs = tmp_path / "runs"
-    assert json.loads((runs / "2026-10-29.json").read_text())["added"] == 7
+    day = json.loads((runs / "2026-10-29.json").read_text())
+    assert day["date"] == "2026-10-29"
+    assert [r["started_at"] for r in day["runs"]] == [
+        "2026-10-29T03:00:01Z",
+        "2026-10-29T04:00:00Z",
+    ]
     index = json.loads((runs / "index.json").read_text())
     assert [e["date"] for e in index] == ["2026-10-30", "2026-10-29"]
-    assert index[1]["added"] == 7
+    assert index[1] == {
+        "date": "2026-10-29", "runs": 2, "added": 2, "updated": 4, "deleted": 8, "failed": 10,
+        "status": "failed", "started_at": "2026-10-29T04:00:00Z", "skipped": 9, "files": 11,
+    }  # fmt: skip
+    assert json.loads((runs / "latest.json").read_text())["started_at"].startswith("2026-10-30")
+
+
+def test_failed_newest_run_without_files_gives_null_files(tmp_path):
+    write_report(tmp_path, make(29))
+    failed = make(29)
+    failed.update(status="failed", started_at="2026-10-29T04:00:00Z")
+    del failed["files"]
+    write_report(tmp_path, failed)
+    row = json.loads((tmp_path / "runs" / "index.json").read_text())[0]
+    assert row["runs"] == 2
+    assert row["status"] == "failed"
+    assert row["files"] is None
+
+
+def test_old_single_report_day_file_becomes_the_first_run(tmp_path):
+    runs = tmp_path / "runs"
+    runs.mkdir()
+    old = make(29)
+    (runs / "2026-10-29.json").write_text(json.dumps(old))
+    new = make(29)
+    new["started_at"] = "2026-10-29T05:00:00Z"
+    write_report(tmp_path, new)
+    day = json.loads((runs / "2026-10-29.json").read_text())
+    assert day["runs"] == [old, new]
+    assert json.loads((runs / "index.json").read_text())[0]["runs"] == 2
+
+
+def test_corrupt_day_file_is_replaced_with_a_warning(tmp_path, caplog):
+    runs = tmp_path / "runs"
+    runs.mkdir()
+    (runs / "2026-10-29.json").write_text("{not json")
+    rep = make(29)
+    with caplog.at_level(logging.WARNING, logger="kbsync"):
+        write_report(tmp_path, rep)
+    assert "2026-10-29.json is corrupt" in caplog.text
+    assert json.loads((runs / "2026-10-29.json").read_text())["runs"] == [rep]
+    assert json.loads((runs / "index.json").read_text())[0]["runs"] == 1
+
+
+def test_day_file_keeps_only_the_newest_48_runs(tmp_path):
+    for n in range(50):
+        rep = make(29)
+        rep["started_at"] = f"2026-10-29T{n // 60:02d}:{n % 60:02d}:00Z"
+        write_report(tmp_path, rep)
+    runs = tmp_path / "runs"
+    kept = json.loads((runs / "2026-10-29.json").read_text())["runs"]
+    assert len(kept) == 48
+    assert kept[0]["started_at"] == "2026-10-29T00:02:00Z"
+    assert kept[-1]["started_at"] == "2026-10-29T00:49:00Z"
+    assert json.loads((runs / "index.json").read_text())[0]["runs"] == 48
 
 
 def test_failed_run_has_one_line_error_and_counts():

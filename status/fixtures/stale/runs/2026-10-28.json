@@ -1,23 +1,28 @@
 {
-  "status": "ok",
-  "started_at": "2026-10-28T02:17:04Z",
-  "duration_s": 42,
-  "added": 0,
-  "updated": 1,
-  "skipped": 30,
-  "deleted": 0,
-  "failed": 0,
-  "files": 31,
-  "chunks_estimate": 120,
-  "converter_version": "2",
-  "git_sha": "7f5e304",
-  "changes": [
+  "date": "2026-10-28",
+  "runs": [
     {
-      "article_id": 2,
-      "title": "Screen rotation settings",
-      "url": "https://support.optisigns.com/hc/en-us/articles/2",
-      "change": "updated"
+      "status": "ok",
+      "started_at": "2026-10-28T02:17:04Z",
+      "duration_s": 42,
+      "added": 0,
+      "updated": 1,
+      "skipped": 30,
+      "deleted": 0,
+      "failed": 0,
+      "files": 31,
+      "chunks_estimate": 120,
+      "converter_version": "2",
+      "git_sha": "7f5e304",
+      "changes": [
+        {
+          "article_id": 2,
+          "title": "Screen rotation settings",
+          "url": "https://support.optisigns.com/hc/en-us/articles/2",
+          "change": "updated"
+        }
+      ],
+      "failures": []
     }
-  ],
-  "failures": []
+  ]
 }

@@ -37,7 +37,20 @@ def test_fixture_matches_contract(name):
     for entry in index:
         assert INDEX_KEYS <= entry.keys()
         day = json.loads((runs / f"{entry['date']}.json").read_text())
-        assert REPORT_KEYS <= day.keys()
+        for run in day.get("runs", [day]):  # an old day file is one bare report
+            assert REPORT_KEYS <= run.keys()
+
+
+def test_fresh_fixture_has_a_merged_day_and_one_old_format_day():
+    runs = FIXTURES / "fresh" / "runs"
+    days = {p.stem: json.loads(p.read_text()) for p in runs.glob("2026-*.json")}
+    assert [d for d, v in days.items() if "runs" not in v] == ["2026-10-26"]
+    merged = days["2026-10-29"]["runs"]
+    assert len(merged) == 2 and merged[0]["added"] and not merged[1]["added"]
+    entry = next(
+        e for e in json.loads((runs / "index.json").read_text()) if e["date"] == "2026-10-29"
+    )
+    assert entry["runs"] == 2 and entry["added"] == merged[0]["added"]
 
 
 def test_empty_and_broken_fixtures():
