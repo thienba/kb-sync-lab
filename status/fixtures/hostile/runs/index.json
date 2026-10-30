@@ -1,0 +1,24 @@
+[
+  {
+    "date": "2026-10-29",
+    "status": "ok",
+    "started_at": "2026-10-29T02:17:04Z",
+    "added": 2,
+    "updated": 0,
+    "skipped": 30,
+    "deleted": 0,
+    "failed": 0,
+    "files": 31
+  },
+  {
+    "date": "2026-10-28",
+    "status": "ok",
+    "started_at": "2026-10-28T02:17:03Z",
+    "added": 0,
+    "updated": 1,
+    "skipped": 30,
+    "deleted": 0,
+    "failed": 0,
+    "files": 31
+  }
+]
