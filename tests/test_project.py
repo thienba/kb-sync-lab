@@ -15,6 +15,13 @@ def test_socket_is_blocked():
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("127.0.0.1", 9))
 
 
+def test_env_sample_leaves_the_image_paths_alone():
+    text = (ROOT / ".env.sample").read_text()
+    assert not re.search(r"^(OUT_DIR|PUBLIC_DIR)=", text, re.M)
+    assert "# PUBLIC_DIR=public" in text
+    assert "# OUT_DIR=out" in text
+
+
 def test_env_sample_has_no_real_key():
     text = (ROOT / ".env.sample").read_text()
     assert not re.search(r"sk-[A-Za-z0-9_-]{16,}", text)
@@ -24,8 +31,6 @@ def test_env_sample_has_no_real_key():
         "VECTOR_STORE_NAME=optibot-kb-dev",
         "OPENAI_MODEL",
         "HEALTHCHECK_URL",
-        "PUBLIC_DIR",
-        "OUT_DIR",
         "FULL_REBUILD",
     ):
         assert re.search(rf"^{name}", text, re.M)
