@@ -35,6 +35,9 @@ def test_mermaid_flowchart_has_every_node():
     block = re.search(r"```mermaid\n(.*?)```", README, re.S).group(1)
     assert block.startswith("flowchart")
     for label in (
+        "GitHub main",
+        "deploy.sh",
+        "Job image",
         "Zendesk API",
         "HTML → Markdown",
         "Find delta",
@@ -46,7 +49,7 @@ def test_mermaid_flowchart_has_every_node():
         "healthchecks.io",
     ):
         assert label in block
-    assert block.count("-->") == 9
+    assert block.count("-->") == 12
 
 
 def test_relative_links_and_images_exist():
@@ -70,6 +73,9 @@ def test_required_strings():
         "docker run --rm -e API_KEY",
         "reduces the risk",
         "uv run pytest -q",
+        "deploy/deploy.sh",
+        "out/articles/",
+        "02:17 UTC",
     ):
         assert text in README
     assert not re.search(r"sk-[A-Za-z0-9_-]{16,}", README)
