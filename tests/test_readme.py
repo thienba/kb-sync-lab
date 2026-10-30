@@ -6,9 +6,6 @@ from kbsync.config import Config
 ROOT = Path(__file__).resolve().parent.parent
 README = (ROOT / "README.md").read_text()
 
-# Files the README embeds that a human adds later (docs/playground.md explains the screenshot).
-PENDING = {"docs/screenshot-youtube.png"}
-
 HEADINGS = [
     "Setup",
     "Run locally",
@@ -56,7 +53,7 @@ def test_relative_links_and_images_exist():
     targets = re.findall(r"!?\[[^\]]*\]\(([^)]+)\)", README)
     assert "docs/screenshot-youtube.png" in targets
     for target in targets:
-        if re.match(r"[a-z]+:", target) or target in PENDING:
+        if re.match(r"[a-z]+:", target):
             continue
         assert (ROOT / target.split("#")[0]).exists(), target
     for path in re.findall(r"`((?:docs|prompts)/[\w./-]+)`", README):
