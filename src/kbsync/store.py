@@ -217,7 +217,11 @@ class OpenAIStore:
                 log.warning("Could not delete file %s: %s", stored.file_id, redact(str(exc)))
 
     def stats(self, chunks: int) -> StoreStats:
-        """Read file counts and size; `chunks` is the caller's estimate (see estimate_chunks)."""
+        """Read file counts and size; `chunks` is the caller's estimate (see estimate_chunks).
+
+        The counts lag right after deletes, so the log line leaves them out: the run's
+        summary line reports the files it listed.
+        """
         with _translated():
             vs = self.client.vector_stores.retrieve(self.store_id)
         counts = {
@@ -227,9 +231,8 @@ class OpenAIStore:
             "total": vs.file_counts.total,
         }
         log.info(
-            "Vector store %s: files=%d usage_bytes=%s chunks≈%d (estimate)",
+            "Vector store %s: usage_bytes=%s chunks≈%d (estimate)",
             self.name,
-            counts["total"],
             f"{vs.usage_bytes:,}",
             chunks,
         )

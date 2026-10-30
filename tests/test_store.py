@@ -292,9 +292,8 @@ def test_stats_logs_line(caplog):
         st = make(c, store_id="vs_1").stats(chunks=9)
     assert st.file_counts == {"completed": 3, "failed": 1, "in_progress": 0, "total": 4}
     assert st.usage_bytes == 1234567
-    assert "Vector store optibot-kb: files=4 usage_bytes=1,234,567 chunks≈9 (estimate)" in (
-        caplog.text
-    )
+    assert "Vector store optibot-kb: usage_bytes=1,234,567 chunks≈9 (estimate)" in caplog.text
+    assert "files=" not in caplog.text
 
 
 def test_smoke_search_logs_url(caplog):
