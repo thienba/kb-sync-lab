@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 from pathlib import Path
 
 import openai
@@ -11,6 +12,8 @@ from kbsync.store import OpenAIStore, _translated
 DEFAULT_MODEL = "gpt-5.4-mini"
 DEFAULT_PROMPT_FILE = Path(__file__).resolve().parents[2] / "prompts" / "optibot.md"
 NO_SOURCES = "Sources: none (the bot did not cite a file)"
+# The model sometimes leaks citations as text: U+E200 filecite U+E202 turn0file3 U+E201.
+CITATION_MARKER = re.compile("[ \t]*[^\n]*")
 
 
 def cited_file_ids(response) -> list[str]:
@@ -50,7 +53,7 @@ def ask(question: str, prompt_file: str | None = None, client: openai.OpenAI | N
             if url and url not in urls:
                 urls.append(url)
     sources = "Sources:\n" + "\n".join(f"- {u}" for u in urls) if urls else NO_SOURCES
-    return f"{response.output_text}\n\n{sources}"
+    return f"{CITATION_MARKER.sub('', response.output_text)}\n\n{sources}"
 
 
 def main(argv: list[str] | None = None) -> None:

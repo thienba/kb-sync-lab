@@ -147,3 +147,31 @@ def test_no_question_prints_usage_and_exits_2():
     )
     assert r.returncode == 2
     assert "usage:" in r.stderr
+
+
+MARKER = "fileciteturn0file3turn0file9"
+
+
+def answer_for(monkeypatch, capsys, text):
+    c = FakeClient(("aa1",))
+    reply = response("aa1")
+    reply.output_text = text
+    c.responses = NS(create=lambda **kw: reply)
+    monkeypatch.setattr(openai, "OpenAI", lambda **kw: c)
+    main([QUESTION])
+    return capsys.readouterr().out
+
+
+def test_citation_marker_and_its_space_are_removed(monkeypatch, capsys):
+    out = answer_for(monkeypatch, capsys, f"Done. {MARKER}")
+    assert out == "Done.\n\nSources:\n- https://u/aa\n"
+
+
+def test_every_citation_marker_is_removed_and_lines_are_kept(monkeypatch, capsys):
+    out = answer_for(monkeypatch, capsys, f"- One. {MARKER}\n- Two {MARKER} more.\n{MARKER}")
+    assert out == "- One.\n- Two more.\n\n\nSources:\n- https://u/aa\n"
+
+
+def test_answer_without_marker_is_unchanged(monkeypatch, capsys):
+    out = answer_for(monkeypatch, capsys, "- One  two.\n\n- Three. ")
+    assert out == "- One  two.\n\n- Three. \n\nSources:\n- https://u/aa\n"
