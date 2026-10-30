@@ -343,11 +343,11 @@ def test_openai_store_stats_is_called_before_summary(caplog):
 
         def stats(self, chunks):
             self.stats_calls.append(chunks)
-            logging.getLogger("kbsync").info("Vector store x: files=3")
+            logging.getLogger("kbsync").info("Vector store x: usage_bytes=3")
 
     caplog.set_level(logging.INFO, logger="kbsync")
     store = StatsStore()
     go(synthetic(3), store=store)
     assert store.stats_calls == [3]
     msgs = [r.getMessage() for r in caplog.records]
-    assert msgs.index("Vector store x: files=3") < msgs.index(NEXT_HINT) < len(msgs) - 1
+    assert msgs.index("Vector store x: usage_bytes=3") < msgs.index(NEXT_HINT) < len(msgs) - 1
