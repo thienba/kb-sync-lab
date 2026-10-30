@@ -1,11 +1,12 @@
-# OpenAI Playground check (pending human)
+# OpenAI Playground check
 
-Status: pending human. Not verified by the agent; backup is `uv run ask.py "<question>"`.
+Checked by hand on 2026-10-30. It works, and `docs/screenshot-youtube.png` is the result.
 
-Steps to try (the UI may have changed; write down what differs):
-1. Open https://platform.openai.com/playground in the project that owns the dev store.
-2. Pick a prompt/assistant-style view that has a system prompt (Instructions) box; paste `prompts/optibot.md`.
-3. Add the File Search tool and attach the vector store `optibot-kb-dev` (416 files).
-4. Ask "How do I add a YouTube video?" and check the answer cites the YouTube article.
+1. Open https://platform.openai.com/playground in the project that owns the store. The page is "New prompt"; there is no Assistant object.
+2. Paste `prompts/optibot.md` into the Prompt box and set the model to `gpt-5.4-mini`.
+3. Under Hosted tools, turn on File search and pick the store `optibot-kb` (416 files).
+4. Ask "How do I add a YouTube video?".
 
-Finding to record here (max 15 lines in total): works / how it differs / use `ask.py` instead.
+Result: 5 bullets, the "Article URL:" line with the YouTube article, and the source file as a chip under the answer.
+
+The store name shows only in the File search dialog (the pencil icon), not in the side panel. The prompt stays an unsaved draft. Saved prompts shut down on 2026-11-30; this page was not checked after that date. If the Playground stops offering File search, `uv run ask.py "<question>"` asks the same store with the same prompt.
