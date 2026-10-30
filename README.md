@@ -1,6 +1,7 @@
 # kb-sync-lab
 
 [![last run](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fkbsync.bahuynh.com%2Fruns%2Flatest.json&query=%24.status&label=last%20run)](https://kbsync.bahuynh.com/status/)
+[![daily job](https://healthchecks.io/badge/62526ddc-7159-4d43-bc63-ace9ec/02ZJyJIp-2.svg)](https://kbsync.bahuynh.com/status/)
 Live status: https://kbsync.bahuynh.com/status/
 
 A daily job pulls help-center articles from support.optisigns.com, converts them to clean Markdown and uploads only what changed to an OpenAI vector store. `ask.py` answers questions from it with cited sources.

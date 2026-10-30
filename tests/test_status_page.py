@@ -22,7 +22,9 @@ def test_page_is_safe_and_self_contained():
 def test_page_constants():
     assert "RUN_HOUR_UTC = 2, RUN_MINUTE_UTC = 17" in PAGE
     assert "STALE_HOURS = 26" in PAGE
-    assert 'HC_BADGE_URL = ""' in PAGE
+    # The public read-only badge, never a ping URL.
+    assert 'HC_BADGE_URL = "https://healthchecks.io/badge/' in PAGE
+    assert "hc-ping.com" not in PAGE
 
 
 @pytest.mark.parametrize("name", ["fresh", "stale", "hostile"])
