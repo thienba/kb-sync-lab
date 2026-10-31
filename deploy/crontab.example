@@ -1,2 +1,6 @@
+# Daily job at 02:17 UTC. Field order: minute hour day month weekday.
+# The time can change. A new time must also be set in the server's root crontab,
+# RUN_HOUR_UTC and RUN_MINUTE_UTC in status/index.html (with its "next run" text),
+# README.md, docs/runbook.md, the tests that check them, and the healthchecks.io check.
 CRON_TZ=UTC
 17 2 * * * /opt/kbsync/run-job.sh
