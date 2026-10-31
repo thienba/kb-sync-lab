@@ -16,6 +16,12 @@ def test_socket_is_blocked():
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("127.0.0.1", 9))
 
 
+def test_crontab_example_keeps_its_two_active_lines():
+    lines = (ROOT / "deploy" / "crontab.example").read_text().splitlines()
+    active = [line for line in lines if line and not line.startswith("#")]
+    assert active == ["CRON_TZ=UTC", "17 2 * * * /opt/kbsync/run-job.sh"]
+
+
 def test_env_sample_leaves_the_image_paths_alone():
     text = (ROOT / ".env.sample").read_text()
     assert not re.search(r"^(OUT_DIR|PUBLIC_DIR)=", text, re.M)
