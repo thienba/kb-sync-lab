@@ -4,7 +4,7 @@ Checked by hand on 2026-10-30. It works, and `docs/screenshot-youtube.png` is th
 
 1. Open https://platform.openai.com/playground in the project that owns the store. The page is "New prompt"; there is no Assistant object.
 2. Paste `prompts/optibot.md` into the Prompt box and set the model to `gpt-5.4-mini`.
-3. Under Hosted tools, turn on File search and pick the store `optibot-kb` (416 files).
+3. Under Hosted tools, turn on File search and pick the store `optibot-kb` (over 400 files).
 4. Ask "How do I add a YouTube video?".
 
 Result: 5 bullets, the "Article URL:" line with the YouTube article, and the source file as a chip under the answer.
