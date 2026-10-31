@@ -32,7 +32,7 @@ flowchart TB
 Needs Python 3.12 and `uv`. `cp .env.sample .env` (set `API_KEY`; the sample uses the dev store `optibot-kb-dev`), then `uv sync`.
 
 ## Run locally
-`uv run main.py` syncs all articles (416 on 2026-10-30) and writes one Markdown file per article to `out/articles/`. `uv run ask.py "How do I add a YouTube video?"` asks the store.
+`uv run main.py` syncs all articles (over 400) and writes one Markdown file per article to `out/articles/`. `uv run ask.py "How do I add a YouTube video?"` asks the store.
 
 ## Run in Docker
 `docker build -t kb-sync-lab . && docker run --rm -e API_KEY=sk-... kb-sync-lab`

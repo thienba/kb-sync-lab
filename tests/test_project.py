@@ -10,6 +10,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 
 
+@pytest.mark.filterwarnings("ignore:A test tried to use socket.socket")
 def test_socket_is_blocked():
     with pytest.raises(Exception, match="(?i)socket"):
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("127.0.0.1", 9))
