@@ -84,3 +84,27 @@ def test_required_strings():
 def test_chunk_numbers_match_config_defaults():
     cfg = Config(api_key="x", vector_store_name="x")
     assert f"{cfg.chunk_max_tokens} tokens with {cfg.chunk_overlap_tokens} overlap" in README
+
+
+def test_demo_order_matches_demo_script():
+    tests_section = README.split("## Tests", 1)[1]
+    steps = [
+        "tests,",
+        "`uv run main.py`",
+        "`scripts/dev_store_tools.py`",
+        "`added=1`, `deleted=1`",
+        "`ask.py`",
+        "the run log",
+    ]
+    positions = [tests_section.index(step) for step in steps]
+    assert positions == sorted(positions)
+    script = (ROOT / "scripts" / "demo.sh").read_text()
+    commands = [
+        "uv run pytest",
+        "uv run main.py",
+        "dev_store_tools.py",
+        "uv run ask.py",
+        "latest.json",
+    ]
+    at = [script.index(command) for command in commands]
+    assert at == sorted(at)

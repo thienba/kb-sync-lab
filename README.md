@@ -62,4 +62,4 @@ Logs: https://kbsync.bahuynh.com/runs/latest.json.
 Use a dedicated OpenAI project with a spend limit and delete the vector store afterwards. Article text is untrusted: sanitising reduces the risk of prompt injection and does not remove it.
 
 ## Tests
-`uv run pytest -q`. `make demo` walks the whole flow against the dev store.
+`uv run pytest -q`. `make demo` walks the whole flow against the dev store, in this order: tests, `uv run main.py`, drop one article and add a ghost (`scripts/dev_store_tools.py`), sync again (`added=1`, `deleted=1`), `ask.py`, the run log.
